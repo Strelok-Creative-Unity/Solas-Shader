@@ -46,7 +46,7 @@ void calculateVLParameters(inout float intensity, inout float distanceFactor, in
 	}
     float closedSpaceFactor = 1.0 - min(1.0, pow8(eBS) * 0.5 + averageDepth * (0.7 - eBS * eBS * 0.35));
 
-    intensity = (VoLClamped * VoLClamped * VL_STRENGTH_RATIO + (1.0 - VL_STRENGTH_RATIO)) * (1.0 - timeBrightness);
+    intensity = fmix((VoLClamped * VoLClamped * VL_STRENGTH_RATIO + (1.0 - VL_STRENGTH_RATIO)) * (1.0 - timeBrightness), 4.0, wetness);
     intensity += pow(VoLClamped, 1.5) * timeBrightness;
     intensity *= 1.0 + pow8(VoLClamped) * (2.0 + pow16(VoLClamped) * 3.0);
     intensity *= timeIntensityFactor * (1.0 + closedSpaceFactor);
@@ -58,7 +58,7 @@ void calculateVLParameters(inout float intensity, inout float distanceFactor, in
     intensity *= fmix(pow4(1.0 - VoUClamped), 0.125 + timeBrightness * 0.5, float(isEyeInWater == 1));
     #endif
 
-    intensity *= VL_STRENGTH * shadowFade * caveFactor * (1.0 + wetness);
+    intensity *= VL_STRENGTH * shadowFade * caveFactor;
     samplePersistence *= 1.0 - closedSpaceFactor * 0.35 - float(isEyeInWater == 1) * 0.25 - wetness * 0.25;
     distanceFactor = float(isEyeInWater) * 5.0 + closedSpaceFactor * 2.0;
 }
@@ -168,12 +168,12 @@ void computeVolumetricLight(inout vec3 vl, in vec3 translucent, in float dither)
         //Ray marcher parameters
         int sampleCount = VL_SAMPLES;
         #ifdef OVERWORLD
-            sampleCount += int(sunVisibility * (4 - dfade * 3));
+            sampleCount += int(sunVisibility * (4 - dfade * 3 + wetness * 3));
         #endif
 
         float maxDist = shadowDistance;
         #ifdef VC_SHADOWS
-            maxDist += 128.0 + sunVisibility * (256.0 - dfade * 256.0);
+            maxDist += 128.0 + sunVisibility * (256.0 - dfade * 256.0) + wetness * 128.0;
         #endif
 
         #ifdef VL

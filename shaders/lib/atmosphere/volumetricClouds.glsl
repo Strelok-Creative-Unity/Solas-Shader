@@ -265,7 +265,7 @@ void computeVolumetricClouds(inout vec4 vc, in vec3 atmosphereColor, float z, fl
                 float attenuation = step(cloudBottom, rayPos.y) * step(rayPos.y, cloudTop);
 
                 float noise = CloudSample(cloudCoord, wind, sampleAltitude, thickness, amount, density);
-                        noise *= attenuation;
+                      noise *= attenuation;
 
                 float lightingNoise = CloudSampleLowDetail(cloudCoord + worldLightVec.xy, wind, sampleAltitude, thickness, amount, density);
                         lightingNoise *= attenuation;
@@ -312,7 +312,7 @@ void computeVolumetricClouds(inout vec4 vc, in vec3 atmosphereColor, float z, fl
                 #endif
 			vec3 cloudColor = fmix(cloudAmbientColor, cloudLightColor, ambientLighting * (0.5 + shadowFade * 0.5)) * fmix(vec3(1.0), biomeColor, isSpecificBiome * sunVisibility);
 
-            float opacity = clamp(fmix(VC_OPACITY, 1.0, (max(0.0, cameraPosition.y - thickness * 10.0) / height)), 0.0, 1.0);
+            float opacity = clamp(fmix(VC_OPACITY * (1.0 - wetness * 0.25), 1.0, (max(0.0, cameraPosition.y - thickness * 10.0) / height)), 0.0, 1.0);
 
             #if MC_VERSION >= 12104
             opacity = fmix(opacity, opacity * 0.5, isPaleGarden);
