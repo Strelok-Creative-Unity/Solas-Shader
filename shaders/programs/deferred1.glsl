@@ -306,8 +306,10 @@ void main() {
     #endif
 
     //Voxy water
+    vec4 voxyTransparentColor = vec4(0.0);
+
     #if defined VOXY && defined OVERWORLD
-	vec4 voxyTransparentColor = texture2D(colortex7, texCoord);
+	voxyTransparentColor = texture2D(colortex7, texCoord);
 	voxyTransparentColor.rgb /= max(voxyTransparentColor.a, 0.00001);
 
 	float vxZ1 = texture2D(vxDepthTexTrans, texCoord).r;
