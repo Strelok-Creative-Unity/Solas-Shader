@@ -49,19 +49,11 @@ float CloudHeightDensity(float sampleAltitude, float noiseBase) {
 	return clamp((0.30 + bottomFade * 0.70) * bodyFade * topFade * planeFade, 0.0, 1.08);
 }
 
-float cloudSampleBasePerlinWorley(vec2 coord) {
-	float perlinBase = texture2D(noisetex, coord * 0.35 + vec2(0.17, -0.11)).r * 0.55;
-	      perlinBase += texture2D(noisetex, coord * 1.25 + vec2(-0.07, 0.19)).r * 0.45;
+float cloudSampleBase(vec2 coord) {
+	float perlinBase = texture2D(noisetex, coord * 0.5 + vec2(0.17, -0.11)).r * 0.6;
+	      perlinBase += texture2D(noisetex, coord * 1.5 + vec2(-0.07, 0.19)).r * 0.4;
 
-	float worleyBase = (1.0 - texture2D(noisetex, coord * 0.75).g) * 0.62;
-	      worleyBase += (1.0 - texture2D(noisetex, coord * 2.15 + vec2(0.37, -0.41)).g) * 0.38;
-
-	float perlinWorley = perlinBase * (0.52 + worleyBase);
-	float noiseBase = perlinBase * 0.45 + perlinWorley * 0.55;
-	      noiseBase = clamp((noiseBase - 0.48) * 1.38 + 0.48, 0.0, 1.0);
-	      noiseBase = clamp(noiseBase * 1.05 + 0.095, 0.0, 1.075);
-
-	return noiseBase;
+	return clamp((perlinBase - 0.35) * 1.4 + 0.5, 0.0, 1.0);
 }
 
 float CloudCoverageDefault(float sampleAltitude, float amount) {
@@ -97,7 +89,7 @@ float CloudShadowSample(vec2 coord, vec2 wind, float sampleAltitude, float amoun
 
 	vec2 baseCoord = coord * 0.5 + wind * 2.0;
 
-	float noiseBase = cloudSampleBasePerlinWorley(baseCoord);
+	float noiseBase = cloudSampleBase(baseCoord);
 	float noiseCoverage = CloudCoverageDefault(sampleAltitude, amount);
 	      noiseCoverage += CloudVerticalCoverage(sampleAltitude, noiseBase);
 

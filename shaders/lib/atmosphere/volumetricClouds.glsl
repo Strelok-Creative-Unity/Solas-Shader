@@ -54,19 +54,11 @@ float CloudHeightDensity(float sampleAltitude, float noiseBase) {
 	return clamp((0.30 + bottomFade * 0.70) * bodyFade * topFade * planeFade, 0.0, 1.08);
 }
 
-float cloudSampleBasePerlinWorley(vec2 coord) {
-	float perlinBase = texture2D(noisetex, coord * 0.35 + vec2(0.17, -0.11)).r * 0.55;
-	      perlinBase += texture2D(noisetex, coord * 1.25 + vec2(-0.07, 0.19)).r * 0.45;
+float cloudSampleBase(vec2 coord) {
+	float perlinBase = texture2D(noisetex, coord * 0.5 + vec2(0.17, -0.11)).r * 0.6;
+	      perlinBase += texture2D(noisetex, coord * 1.5 + vec2(-0.07, 0.19)).r * 0.4;
 
-	float worleyBase = (1.0 - texture2D(noisetex, coord * 0.75).g) * 0.62;
-	      worleyBase += (1.0 - texture2D(noisetex, coord * 2.15 + vec2(0.37, -0.41)).g) * 0.38;
-
-	float perlinWorley = perlinBase * (0.52 + worleyBase);
-	float noiseBase = perlinBase * 0.45 + perlinWorley * 0.55;
-	      noiseBase = clamp((noiseBase - 0.48) * 1.38 + 0.48, 0.0, 1.0);
-	      noiseBase = clamp(noiseBase * 1.05 + 0.095, 0.0, 1.075);
-
-	return noiseBase;
+	return clamp((perlinBase - 0.35) * 1.4 + 0.5, 0.0, 1.0);
 }
 
 float CloudSampleDetail(vec2 coord, float sampleAltitude, float thickness) {
@@ -75,10 +67,8 @@ float CloudSampleDetail(vec2 coord, float sampleAltitude, float thickness) {
 
 	float noiseDetailLow = texture2D(noisetex, coord.xy + detailZ).g;
 	float noiseDetailHigh = texture2D(noisetex, coord.xy + detailZ + 0.04).g;
-	float noiseDetail = fmix(noiseDetailLow, noiseDetailHigh, detailFrac);
 
-	float blueDetail = texture2D(noisetex, coord.xy * 0.25 + detailZ + vec2(0.41, -0.17)).b;
-	      noiseDetail *= 1.0 + blueDetail * 0.25;
+	float noiseDetail = fmix(noiseDetailLow, noiseDetailHigh, detailFrac);
 
 	return noiseDetail;
 }
@@ -117,7 +107,7 @@ float CloudSample(vec2 coord, vec2 wind, float sampleAltitude, float thickness, 
 	vec2 baseCoord = coord * 0.5 + wind * 2.0;
 	vec2 detailCoord = coord.xy * 10.0 - wind * 2.0;
 
-	float noiseBase = cloudSampleBasePerlinWorley(baseCoord);
+	float noiseBase = cloudSampleBase(baseCoord);
 	float noiseDetail = CloudSampleDetail(detailCoord, sampleAltitude, thickness);
 	float noiseCoverage = CloudCoverageDefault(sampleAltitude, amount);
 	      noiseCoverage += CloudVerticalCoverage(sampleAltitude, noiseBase);
@@ -133,7 +123,7 @@ float CloudSampleLowDetail(vec2 coord, vec2 wind, float sampleAltitude, float th
 
 	vec2 baseCoord = coord * 0.5 + wind * 2.0;
 
-	float noiseBase = cloudSampleBasePerlinWorley(baseCoord);
+	float noiseBase = cloudSampleBase(baseCoord);
 	float noiseCoverage = CloudCoverageDefault(sampleAltitude, amount);
 	      noiseCoverage += CloudVerticalCoverage(sampleAltitude, noiseBase);
 
@@ -353,7 +343,7 @@ void computeVolumetricClouds(inout vec4 vc, in vec3 atmosphereColor, float z, fl
             //Final color calculations
 			vec3 nSkyColor = normalize(skyColor + 0.0001);
             vec3 atmColor22 = pow(atmosphereColor, vec3(2.2));
-            vec3 cloudAmbientColor = fmix(atmColor22, atmColor22 * mix(vec3(1.0), nSkyColor * 0.5, isSpecificBiome), timeBrightnessSqrt) * (0.5 + sunVisibility * 0.5 - wetness * 0.5);
+            vec3 cloudAmbientColor = fmix(atmColor22, atmColor22 * mix(vec3(1.0), nSkyColor * 0.5, isSpecificBiome), timeBrightnessSqrt) * (0.75 + scattering * 0.25 - wetness * 0.5);
 
             vec3 cloudLightColor = fmix(lightCol, lightCol * nSkyColor * 2.0, timeBrightnessSqrt);
                  cloudLightColor *= 0.125 + cloudLighting * ((0.475 + 0.4 * shadowFade + moonVisibility * 0.4) + scattering * 1.825);
